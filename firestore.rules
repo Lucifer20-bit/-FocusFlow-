@@ -1,0 +1,138 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global catch-all default-deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId == request.auth.uid &&
+             data.displayName is string &&
+             data.displayName.size() >= 1 &&
+             data.displayName.size() <= 100 &&
+             (!('workDurationMinutes' in data) || (data.workDurationMinutes is int && data.workDurationMinutes >= 1 && data.workDurationMinutes <= 180)) &&
+             (!('shortBreakMinutes' in data) || (data.shortBreakMinutes is int && data.shortBreakMinutes >= 1 && data.shortBreakMinutes <= 60)) &&
+             (!('longBreakMinutes' in data) || (data.longBreakMinutes is int && data.longBreakMinutes >= 1 && data.longBreakMinutes <= 120)) &&
+             (!('longBreakInterval' in data) || (data.longBreakInterval is int && data.longBreakInterval >= 1 && data.longBreakInterval <= 12)) &&
+             (!('soundPreset' in data) || (data.soundPreset is string && data.soundPreset.size() <= 50)) &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidHabit(data, userId) {
+      return data.userId == userId &&
+             data.title is string &&
+             data.title.size() >= 1 &&
+             data.title.size() <= 100 &&
+             data.category is string &&
+             data.category.size() >= 1 &&
+             data.category.size() <= 50 &&
+             (!('targetDaysPerWeek' in data) || (data.targetDaysPerWeek is int && data.targetDaysPerWeek >= 1 && data.targetDaysPerWeek <= 7)) &&
+             (!('currentStreak' in data) || (data.currentStreak is int && data.currentStreak >= 0)) &&
+             (!('bestStreak' in data) || (data.bestStreak is int && data.bestStreak >= 0)) &&
+             (!('completedDates' in data) || (data.completedDates is list && data.completedDates.size() <= 1000 && (data.completedDates.size() == 0 || data.completedDates[0] is string))) &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidFocusSession(data, userId) {
+      return data.userId == userId &&
+             data.durationMinutes is int &&
+             data.durationMinutes >= 1 &&
+             data.durationMinutes <= 360 &&
+             data.tag is string &&
+             data.tag.size() >= 1 &&
+             data.tag.size() <= 50 &&
+             data.sessionType is string &&
+             data.sessionType in ['pomodoro', 'short_break', 'long_break'] &&
+             data.completed is bool &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Users cannot list other users
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'workDurationMinutes', 'shortBreakMinutes', 'longBreakMinutes', 'longBreakInterval', 'soundPreset', 'createdAt', 'updatedAt']) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'workDurationMinutes', 'shortBreakMinutes', 'longBreakMinutes', 'longBreakInterval', 'soundPreset', 'updatedAt']);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /habits/{habitId} {
+        allow get: if isOwner(userId) && isValidId(habitId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(habitId) &&
+                         incoming().keys().hasAll(['userId', 'title', 'category', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'category', 'targetDaysPerWeek', 'currentStreak', 'bestStreak', 'completedDates', 'createdAt', 'updatedAt']) &&
+                         incoming().createdAt is timestamp &&
+                         incoming().createdAt <= request.time &&
+                         isValidHabit(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(habitId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidHabit(incoming(), userId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'category', 'targetDaysPerWeek', 'currentStreak', 'bestStreak', 'completedDates', 'updatedAt']);
+
+        allow delete: if isOwner(userId) && isValidId(habitId);
+      }
+
+      match /sessions/{sessionId} {
+        allow get: if isOwner(userId) && isValidId(sessionId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(sessionId) &&
+                         incoming().keys().hasAll(['userId', 'durationMinutes', 'tag', 'sessionType', 'completed', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'durationMinutes', 'tag', 'sessionType', 'completed', 'createdAt', 'updatedAt']) &&
+                         incoming().createdAt is timestamp &&
+                         incoming().createdAt <= request.time &&
+                         isValidFocusSession(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(sessionId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidFocusSession(incoming(), userId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['durationMinutes', 'tag', 'sessionType', 'completed', 'updatedAt']);
+
+        allow delete: if isOwner(userId) && isValidId(sessionId);
+      }
+    }
+  }
+}

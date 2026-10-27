@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User preferences and timer settings",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "workDurationMinutes": { "type": "integer" },
+        "shortBreakMinutes": { "type": "integer" },
+        "longBreakMinutes": { "type": "integer" },
+        "longBreakInterval": { "type": "integer" },
+        "soundPreset": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName", "createdAt"]
+    },
+    "Habit": {
+      "title": "Habit",
+      "description": "A user-defined habit to track daily streaks",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "targetDaysPerWeek": { "type": "integer" },
+        "currentStreak": { "type": "integer" },
+        "bestStreak": { "type": "integer" },
+        "completedDates": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "category", "createdAt"]
+    },
+    "FocusSession": {
+      "title": "FocusSession",
+      "description": "Completed or logged focus interval session",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "durationMinutes": { "type": "integer" },
+        "tag": { "type": "string" },
+        "sessionType": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "durationMinutes", "tag", "sessionType", "completed", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Root user profile and timer configuration"
+    },
+    "/users/{userId}/habits/{habitId}": {
+      "schema": "Habit",
+      "description": "User habits and streak records"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "FocusSession",
+      "description": "Focus timer completion sessions and history"
+    }
+  }
+}

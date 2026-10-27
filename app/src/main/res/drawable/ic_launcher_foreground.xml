@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Top Button / Crown -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M50,22 h8 v4 h-8 z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M52,26 h4 v3 h-4 z" />
+    <!-- Outer Glow Ring -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="4"
+        android:pathData="M54,29 A25,25 0 1,1 53.9,29" />
+    <!-- Inner Accent Arc (Progress) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,34 A20,20 0 0,1 74,54" />
+    <!-- Center Focus Flame/Spark Glyph -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,41 C54,41 59,48 59,53 C59,56 56.8,59 54,59 C51.2,59 49,56 49,53 C49,48 54,41 54,41 Z" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,47 C54,47 56.5,51 56.5,54 C56.5,55.5 55.4,57 54,57 C52.6,57 51.5,55.5 51.5,54 C51.5,51 54,47 54,47 Z" />
+    <!-- Bottom small dot indicator -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M52,65 A2,2 0 1,1 56,65 A2,2 0 1,1 52,65" />
+</vector>

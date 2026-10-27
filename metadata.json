@@ -1,0 +1,6 @@
+{
+  "name": "FocusFlow",
+  "description": "Smart focus timer, habit tracker, ambient focus sounds, and productivity streak analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
