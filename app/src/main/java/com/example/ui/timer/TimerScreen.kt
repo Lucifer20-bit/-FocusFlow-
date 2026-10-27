@@ -202,18 +202,21 @@ fun TimerScreen(
                 )
 
                 // Animated Progress Ring with Gradient
-                drawArc(
-                    brush = Brush.sweepGradient(
-                        colors = listOf(primaryColor, secondaryColor, primaryColor),
-                        center = center
-                    ),
-                    startAngle = -90f,
-                    sweepAngle = 360f * animatedProgress,
-                    useCenter = false,
-                    topLeft = topLeft,
-                    size = arcSize,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
+                val safeSweep = (360f * animatedProgress).coerceIn(0f, 360f)
+                if (safeSweep > 0.5f) {
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            colors = listOf(primaryColor, secondaryColor, primaryColor),
+                            center = center
+                        ),
+                        startAngle = -90f,
+                        sweepAngle = safeSweep,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = arcSize,
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                    )
+                }
             }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {

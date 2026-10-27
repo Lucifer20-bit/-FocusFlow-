@@ -126,9 +126,7 @@ fun MainAppContainer(
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
             NavigationBar(
-                modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .testTag("bottom_navigation_bar"),
+                modifier = Modifier.testTag("bottom_navigation_bar"),
                 containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 6.dp
             ) {

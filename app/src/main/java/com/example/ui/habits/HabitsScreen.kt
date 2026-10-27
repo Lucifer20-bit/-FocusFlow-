@@ -90,29 +90,12 @@ fun HabitsScreen(
     val totalStreaks = habits.sumOf { it.currentStreak }
     val completedTodayCount = habits.count { it.completedDates.contains(todayDateStr) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddSheet = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape,
-                modifier = Modifier.testTag("add_habit_fab")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add New Habit",
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-        }
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // Header streak & summary card
@@ -251,6 +234,23 @@ fun HabitsScreen(
                     onDelete = { viewModel.deleteHabit(habit.id) }
                 )
             }
+        }
+
+        FloatingActionButton(
+            onClick = { showAddSheet = true },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(20.dp)
+                .testTag("add_habit_fab")
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add New Habit",
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 

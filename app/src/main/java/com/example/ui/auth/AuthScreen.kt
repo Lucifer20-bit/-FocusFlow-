@@ -74,6 +74,16 @@ fun AuthScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        attemptAutoSignIn(
+            context = context,
+            credentialManager = credentialManager,
+            onAuthSuccess = onAuthSuccess,
+            onUnauthenticated = { },
+            scope = coroutineScope
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -304,6 +314,50 @@ fun performGoogleSignIn(
         } catch (e: Exception) {
             Log.e("Auth", "Google Sign-In failed", e)
             onAuthError(e.localizedMessage ?: "Sign-in failed")
+        }
+    }
+}
+
+fun attemptAutoSignIn(
+    context: Context,
+    credentialManager: CredentialManager,
+    onAuthSuccess: () -> Unit,
+    onUnauthenticated: () -> Unit,
+    scope: CoroutineScope
+) {
+    if (Firebase.auth.currentUser != null) {
+        onAuthSuccess()
+        return
+    }
+    val clientId = try {
+        context.getString(R.string.default_web_client_id)
+    } catch (e: Exception) {
+        onUnauthenticated()
+        return
+    }
+
+    val googleIdOption = GetGoogleIdOption.Builder()
+        .setFilterByAuthorizedAccounts(true)
+        .setServerClientId(clientId)
+        .setAutoSelectEnabled(true)
+        .build()
+
+    val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
+
+    scope.launch {
+        try {
+            val result = credentialManager.getCredential(context, request)
+            val credential = result.credential
+            if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
+                Firebase.auth.signInWithCredential(authCredential).await()
+                onAuthSuccess()
+            } else {
+                onUnauthenticated()
+            }
+        } catch (e: Exception) {
+            onUnauthenticated()
         }
     }
 }
